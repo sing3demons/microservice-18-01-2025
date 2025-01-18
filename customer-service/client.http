@@ -1,0 +1,31 @@
+@uri=http://localhost:8080
+
+
+GET {{uri}}/products?fields=name HTTP/1.1
+###
+POST {{uri}}/products HTTP/1.1
+content-type: application/json
+
+{
+  "name": "product1",
+  "price": 100,
+  "detail": "detail1",
+  "quantity": 1
+}
+
+###
+GET {{uri}}/products/678919645430337d224ebe3a HTTP/1.1
+
+###
+PUT {{uri}}/products/678919645430337d224ebe3a HTTP/1.1
+content-type: application/json
+
+{
+  "name": "product1",
+  "price": 100,
+  "detail": "detail1",
+  "quantity": 2
+}
+
+###
+DELETE {{uri}}/products/678919645430337d224ebe3a HTTP/1.1
