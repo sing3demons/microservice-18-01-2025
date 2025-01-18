@@ -1,0 +1,11 @@
+{
+  "port": "8080",
+  "db": {
+    "addr": "",
+    "uri": "mongodb://localhost:27017",
+    "max_open_conns": 10,
+    "max_idle_conns": 1,
+    "max_idle_time": 10,
+    "Driver": ""
+  }
+}
