@@ -2,10 +2,12 @@ import { Router } from '../custom/server'
 import ProductRepository from './product.repository'
 import ProductService, { IProductService } from './product.service'
 import { productSchema } from './product.schema'
+import { HttpService } from '../custom/http-service'
 
+const httpService = new HttpService()
 
 const productRepository = new ProductRepository()
-const productService = new ProductService(productRepository)
+const productService = new ProductService(productRepository, httpService)
 const productRouter = Router()
 
 productRouter.get(
@@ -36,19 +38,15 @@ productRouter.post(
   }
 )
 
-productRouter.get(
-  '/products/:id',
-  async (ctx) => {
-    const product = await productService.getProductById(ctx.params.id)
-    if (!product) {
-      ctx.response(404, {})
-      return
-    }
-
-    return product
+productRouter.get('/products/:id', async (ctx) => {
+  const product = await productService.getProductById(ctx.params.id)
+  if (!product) {
+    ctx.response(404, {})
+    return
   }
-)
 
+  return product
+})
 
 productRouter.put(
   '/products/:id',
@@ -66,18 +64,15 @@ productRouter.put(
   }
 )
 
-productRouter.delete(
-  '/products/:id',
-  async (ctx) => {
-    const product = await productService.deleteProduct(ctx.params.id)
-    if (!product) {
-      ctx.response(404, {})
-      return
-    }
-
-    return product
+productRouter.delete('/products/:id', async (ctx) => {
+  const product = await productService.deleteProduct(ctx.params.id)
+  if (!product) {
+    ctx.response(404, {})
+    return
   }
-)
+
+  return product
+})
 
 // const productController = productRouter.build()
 export default productRouter

@@ -11,6 +11,40 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func TestProductServiceFindOne(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		productRepositoryMock := repository.NewProductRepositoryMock()
+
+		expectedProduct := model.Product{
+			ID:    "1",
+			Name:  "Product 1",
+			Price: 100,
+			Stock: 10,
+		}
+
+		productRepositoryMock.On("FindOne", mock.Anything).Return(expectedProduct, nil)
+
+		productService := service.NewProductService(productRepositoryMock)
+
+		filter := "1"
+		result := productService.FindOne(filter)
+		assert.NotNil(t, result.Data)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		productRepositoryMock := repository.NewProductRepositoryMock()
+
+		productRepositoryMock.On("FindOne", mock.Anything).Return(nil, assert.AnError)
+
+		productService := service.NewProductService(productRepositoryMock)
+
+		filter := "1"
+		result := productService.FindOne(filter)
+		assert.Equal(t, http.StatusInternalServerError, result.Status)
+		assert.Equal(t, false, result.Success)
+	})
+}
+
 func TestProductServiceFind(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		productRepositoryMock := repository.NewProductRepositoryMock()

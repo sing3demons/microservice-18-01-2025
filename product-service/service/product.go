@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/sing3demons/product-service/db"
@@ -11,6 +12,7 @@ import (
 type ProductService interface {
 	Find(filter interface{}, fields interface{}) Response
 	Create(product model.Product) Response
+	FindOne(filter interface{}) ResponseOne
 }
 
 type productService struct {
@@ -28,6 +30,42 @@ type Response struct {
 	Status  int             `json:"status"`
 	Message string          `json:"message"`
 	Data    []model.Product `json:"data"`
+}
+
+type ResponseOne struct {
+	Success bool          `json:"success"`
+	Status  int           `json:"status"`
+	Message string        `json:"message"`
+	Data    model.Product `json:"data,omitempty"`
+}
+
+func (s *productService) FindOne(filter interface{}) ResponseOne {
+	result := ResponseOne{
+		Success: false,
+		Status:  500,
+	}
+
+	product, err := s.repo.FindOne(db.FindOption{
+		Filter: []db.Filter{
+			{
+				Key:   "id",
+				Value: filter,
+			},
+		},
+	})
+
+	fmt.Println(product)
+	if err != nil {
+		result.Message = err.Error()
+		return result
+	}
+
+	result.Success = true
+	result.Status = 200
+	result.Message = "Success"
+	result.Data = product
+
+	return result
 }
 
 func (s *productService) Find(filter, fields interface{}) Response {

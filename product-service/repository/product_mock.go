@@ -48,3 +48,26 @@ func (m *ProductRepositoryMock) Create(product model.Product) error {
 
 	return r0
 }
+
+
+func (m *ProductRepositoryMock) FindOne(filter db.FindOption) (model.Product, error) {
+	ret := m.Called(filter)
+
+	var r0 model.Product
+	if rf, ok := ret.Get(0).(func(interface{}) model.Product); ok {
+		r0 = rf(filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.Product)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(interface{}) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

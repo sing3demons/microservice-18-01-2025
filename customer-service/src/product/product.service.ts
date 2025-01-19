@@ -1,5 +1,6 @@
 import { IProduct } from './product.schema'
 import { IProductRepository } from './product.repository'
+import { IHttpService } from '../custom/http-service'
 
 export interface IProductService {
   createProduct(body: IProduct): Promise<IProduct>
@@ -10,10 +11,21 @@ export interface IProductService {
 }
 
 export default class ProductService implements IProductService {
-  constructor(private readonly productRepository: IProductRepository) {}
+  constructor(private readonly productRepository: IProductRepository, private readonly httpService: IHttpService) {}
 
   async createProduct(body: IProduct): Promise<IProduct> {
-    return this.productRepository.create(body)
+    const result = await this.productRepository.create(body)
+
+    const httpResult = await this.httpService.get({
+      url: 'http://localhost:8080/products',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    console.log(httpResult)
+
+    return result
   }
 
   async getProducts(): Promise<IProduct[]> {
@@ -44,7 +56,6 @@ export default class ProductService implements IProductService {
     product.href = `/products/${product.id}`
     return product
   }
-
 
   async deleteProduct(id: string): Promise<IProduct | null> {
     const product = await this.productRepository.delete(id)

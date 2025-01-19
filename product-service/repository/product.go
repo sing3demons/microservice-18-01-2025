@@ -8,6 +8,7 @@ import (
 type ProductRepository interface {
 	Find(findOption db.FindOption) ([]model.Product, error)
 	Create(product model.Product) error
+	FindOne(findOption db.FindOption) (model.Product, error)
 }
 
 type productRepository struct {
@@ -36,4 +37,13 @@ func (r *productRepository) Create(product model.Product) error {
 	}
 
 	return nil
+}
+
+func (r *productRepository) FindOne(findOption db.FindOption) (model.Product, error) {
+	result := r.datastore.FindOne(findOption)
+	if result.Err != nil {
+		return model.Product{}, result.Err
+	}
+
+	return result.Data, nil
 }
