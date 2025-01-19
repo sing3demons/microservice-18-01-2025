@@ -162,9 +162,9 @@ export default class AppServer extends AppRouter {
         res.status(code).send(data)
       },
       set: {
-        headers: {},
+        headers: undefined as Record<string, string> | undefined,
         status: 200,
-        cookie:  {} as IExpressCookies,
+        cookie: undefined as IExpressCookies | undefined,
       },
     }
 
@@ -174,17 +174,16 @@ export default class AppServer extends AppRouter {
   public register() {
     this._routes.forEach(({ method, path, handler, hook }) => {
       if (this.express) {
-        this.express[method.toLowerCase() as keyof express.Application](path, async (req: Request, res: Response) => {
+        this.express.route(path)[method](async (req: Request, res: Response, next: NextFunction) => {
           const ctx = this.createContext(req, res)
-
           const schemas = hook?.schema || {}
-
           const schema = this.validatorFactory(ctx, schemas)
           if (schema.err) {
-            return res.status(400).json({
+            res.status(400).json({
               desc: schema.desc,
               data: schema.data,
             })
+            return next()
           }
 
           const result = await handler(ctx)
@@ -193,13 +192,13 @@ export default class AppServer extends AppRouter {
             res.status(ctx.set.status)
           }
 
-          // if (ctx.set.headers) {
-          //   res.set(ctx.set.headers)
-          // }
+          if (ctx.set.headers) {
+            res.set(ctx.set.headers)
+          }
 
-          // if (ctx.set.cookie) {
-          //   res.cookie(ctx.set.cookie.name, ctx.set.cookie.value, ctx.set.cookie.options)
-          // }
+          if (ctx.set.cookie) {
+            res.cookie(ctx.set.cookie.name, ctx.set.cookie.value, ctx.set.cookie.options)
+          }
 
           if (result) {
             res.json(result)
