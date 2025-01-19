@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17.1-alpine3.20
+    restart: always
+    shm_size: 128mb
+    user: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: banking
+    ports:
+      - 5432:5432
+  mongo:
+      image: mongo:6
+      container_name: mongodb
+      # volumes:
+      #   - ./data/mongo:/data/db
+      ports:
+        - 27017:27017
