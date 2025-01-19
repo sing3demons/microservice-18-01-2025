@@ -110,69 +110,49 @@ export class SwaggerDoc {
 
       const responses = detail?.response
         ? {
-            '200': {
-              description: 'Successful response',
-              content: {
-                'application/json': {
-                  schema: detail.response.success,
-                },
-              },
+        '200': {
+          description: 'Successful response',
+          content: {
+            'application/json': {
+          schema: detail.response.success,
             },
-            '400': {
-              description: 'Bad Request',
-              content: {
-                'application/json': {
-                  schema: detail.response['bad request'],
-                },
-              },
+          },
+        },
+        '400': {
+          description: 'Bad Request',
+          content: {
+            'application/json': {
+          schema: detail.response['bad request'],
             },
-            '500': {
-              description: 'Internal Server Error',
-              content: {
-                'application/json': {
-                  schema: detail.response['internal server error'],
-                },
-              },
+          },
+        },
+        '500': {
+          description: 'Internal Server Error',
+          content: {
+            'application/json': {
+          schema: detail.response['internal server error'],
             },
-          }
-        : Object.keys(response).length > 0
-        ? {
-            '200': {
-              description: 'Successful response',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: Object.fromEntries(Object.entries(response).map(([key, type]) => [key, { type }])),
-                  },
-                },
-              },
-            },
-            '400': {
-              description: 'Bad Request',
-            },
-            '500': {
-              description: 'Internal Server Error',
-            },
+          },
+        },
           }
         : {
-            '200': {
-              description: 'Successful response',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {},
-                  },
-                },
-              },
+        '200': {
+          description: 'Successful response',
+          content: {
+            'application/json': {
+          schema: {
+            type: 'object',
+            properties: Object.fromEntries(Object.entries(response).map(([key, type]) => [key, { type }])),
+          },
             },
-            '400': {
-              description: 'Bad Request',
-            },
-            '500': {
-              description: 'Internal Server Error',
-            },
+          },
+        },
+        '400': {
+          description: 'Bad Request',
+        },
+        '500': {
+          description: 'Internal Server Error',
+        },
           }
 
       const parameters = detail?.params
