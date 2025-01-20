@@ -1,7 +1,6 @@
 import { mock } from 'jest-mock-extended'
 import ProductRepository from '../../product/product.repository'
 import ProductModel, { IProduct } from '../../product/product.schema'
-import { Types } from 'mongoose'
 
 jest.mock('../../product/product.schema', () => ({
   find: jest.fn(),
@@ -31,7 +30,7 @@ describe('Create Product Use Case', () => {
     }
 
     const createMock = jest.fn().mockResolvedValue({
-      _id: new Types.ObjectId('507f191e810c19729de860ea'),
+      _id: '507f191e810c19729de860ea',
       name: 'product',
       price: 100,
       detail: 'detail',
@@ -77,9 +76,19 @@ describe('Get Product Use Case', () => {
       },
     ]
 
-    productModel.find = jest
-      .fn()
-      .mockReturnValue({ lean: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(products) }) })
+    productModel.find = jest.fn().mockReturnValue({
+      lean: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: '1',
+            name: 'product',
+            price: 100,
+            detail: 'detail',
+            quantity: 10,
+          },
+        ]),
+      }),
+    })
 
     // Act
     const actual = await productRepository.findAll()
@@ -111,7 +120,7 @@ describe('Get Product By Id Use Case', () => {
 
     const lean = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue({
-        _id: new Types.ObjectId('507f191e810c19729de860ea'),
+        _id: '507f191e810c19729de860ea',
         name: 'product',
         price: 100,
         detail: 'detail',
@@ -170,7 +179,7 @@ describe('Update Product Use Case', () => {
 
     const lean = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue({
-        _id: new Types.ObjectId('507f191e810c19729de860ea'),
+        _id: '507f191e810c19729de860ea',
         name: 'product',
         price: 100,
         detail: 'detail',
@@ -236,7 +245,7 @@ describe('Delete Product Use Case', () => {
 
     const lean = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue({
-        _id: new Types.ObjectId('507f191e810c19729de860ea'),
+        _id: '507f191e810c19729de860ea',
         name: 'product',
         price: 100,
         detail: 'detail',

@@ -2,6 +2,7 @@ import { Type } from '@sinclair/typebox'
 import { Schema, model } from 'mongoose'
 
 export interface IProduct {
+  _id?: string
   id?: string
   href?: string
   name: string
@@ -13,16 +14,29 @@ export interface IProduct {
   updatedAt?: Date
 }
 
-const ProductSchema = new Schema<IProduct>({
-  // id: { type: String, index: true, required: true, auto: true, unique: true },
-  name: { type: String, required: true },
-  detail: { type: String, required: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  createdAt: { type: Date, required: false },
-  updatedAt: { type: Date, required: false },
-})
+class ProductFactory {
+  constructor(private readonly product: IProduct) {}
+  public build() {
+    return this.product
+  }
+}
 
+const ProductSchema = new Schema<IProduct>(
+  {
+    _id: { type: String, required: true },
+    name: { type: String, required: true },
+    detail: { type: String, required: true },
+    price: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+    createdAt: { type: Date, required: false },
+    updatedAt: { type: Date, required: false },
+  },
+  {
+    versionKey: false,
+  }
+)
+
+ProductSchema.index({ _id: 1 }, { unique: true })
 const ProductModel = model('product', ProductSchema, 'product')
 
 const productSchema = Type.Object({
@@ -39,6 +53,6 @@ const productQuerySchema = Type.Object({
   offset: Type.Optional(Type.Number()),
 })
 
-export { productSchema, productQuerySchema }
+export { productSchema, productQuerySchema, ProductFactory }
 
 export default ProductModel

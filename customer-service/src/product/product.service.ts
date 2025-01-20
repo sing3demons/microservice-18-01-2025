@@ -14,16 +14,31 @@ export default class ProductService implements IProductService {
   constructor(private readonly productRepository: IProductRepository, private readonly httpService: IHttpService) {}
 
   async createProduct(body: IProduct): Promise<IProduct> {
-    const result = await this.productRepository.create(body)
-
     const httpResult = await this.httpService.get({
-      url: 'http://localhost:8080/products',
+      url: 'http://localhost:8081/products',
       headers: {
         'Content-Type': 'application/json',
       },
+      query: {
+        search: body.name,
+      },
     })
 
-    console.log(httpResult)
+    console.log(httpResult.Body.data)
+
+    if (httpResult.Status === 200 && httpResult.Body.data.length > 0) {
+      const data = httpResult.Body.data[0] as IProduct
+      return {
+        id: data.id,
+        href: `/products/${data.id}`,
+        name: data.name,
+        price: data.price,
+        detail: data.detail,
+        quantity: data.quantity,
+      }
+    }
+
+    const result = await this.productRepository.create(body)
 
     return result
   }

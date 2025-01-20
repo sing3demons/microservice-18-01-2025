@@ -1,4 +1,5 @@
-import ProductModel, { IProduct } from './product.schema'
+import ProductModel, { IProduct, ProductFactory } from './product.schema'
+import { v7 } from 'uuid'
 
 export interface IProductRepository {
   create(product: IProduct): Promise<IProduct>
@@ -10,10 +11,11 @@ export interface IProductRepository {
 
 export default class ProductRepository implements IProductRepository {
   public async create(product: IProduct): Promise<IProduct> {
+    product._id = v7()
     const result = await ProductModel.create(product)
 
     return {
-      id: String(result._id),
+      id: result._id,
       name: result.name,
       detail: result.detail,
       price: result.price,
@@ -22,10 +24,14 @@ export default class ProductRepository implements IProductRepository {
   }
 
   public async findAll(filter?: Record<string, unknown>): Promise<IProduct[]> {
-    const products = await ProductModel.find().lean().exec()
-    return products.map((product) => ({
-      id: String(product._id),
-      ...product,
+    const result = await ProductModel.find().lean().exec()
+
+    return result.map((product) => ({
+      id: product._id,
+      name: product.name,
+      detail: product.detail,
+      price: product.price,
+      quantity: product.quantity,
     }))
   }
 
@@ -35,11 +41,12 @@ export default class ProductRepository implements IProductRepository {
       return null
     }
 
-    const { _id, ...rest } = product
-
     return {
-      id: String(_id),
-      ...rest,
+      id: product._id,
+      name: product.name,
+      detail: product.detail,
+      price: product.price,
+      quantity: product.quantity,
     }
   }
 
@@ -50,7 +57,7 @@ export default class ProductRepository implements IProductRepository {
     }
 
     return {
-      id: String(result._id),
+      id: result._id,
       ...product,
     }
   }
@@ -64,7 +71,7 @@ export default class ProductRepository implements IProductRepository {
     const { _id, ...rest } = product
 
     return {
-      id: String(_id),
+      id: _id,
       ...rest,
     }
   }
