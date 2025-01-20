@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/sing3demons/product-service/db"
@@ -54,8 +53,8 @@ func (s *productService) FindOne(filter interface{}) ResponseOne {
 		},
 	})
 
-	fmt.Println(product)
 	if err != nil {
+		result.Status = http.StatusNotFound
 		result.Message = err.Error()
 		return result
 	}

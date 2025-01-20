@@ -72,6 +72,7 @@ func Router(app ms.IApplication, client *db.MongoClient) {
 	productService := service.NewProductService(productRepository)
 	productHandler := handler.NewProductHandler(productService)
 
+	app.Get("/products/{id}", productHandler.GetProduct)
 	app.Get("/products", productHandler.GetProducts)
 	app.Post("/products", productHandler.CreateProduct)
 }

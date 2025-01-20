@@ -116,5 +116,4 @@ func TestProductServiceCreate(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, response.Status)
 
 	})
-
 }

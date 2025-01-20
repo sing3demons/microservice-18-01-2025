@@ -9,6 +9,7 @@ import (
 type ProductHandler interface {
 	GetProducts(ctx ms.IContext) error
 	CreateProduct(ctx ms.IContext) error
+	GetProduct(ctx ms.IContext) error
 }
 
 type productHandler struct {
@@ -37,6 +38,17 @@ func (h *productHandler) CreateProduct(ctx ms.IContext) error {
 	}
 
 	result := h.service.Create(product)
+	ctx.Response(result.Status, result)
+	return nil
+}
+
+func (h *productHandler) GetProduct(ctx ms.IContext) error {
+	id := ctx.Param("id")
+	result := h.service.FindOne(id)
+	if result.Status == 404 {
+		ctx.Response(404, result)
+		return nil
+	}
 	ctx.Response(result.Status, result)
 	return nil
 }

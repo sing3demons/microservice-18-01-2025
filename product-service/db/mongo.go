@@ -4,14 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/event"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -38,32 +36,32 @@ type MongoClient struct {
 
 func NewMongoClient(config MongoConfig) (*MongoClient, error) {
 
-	monitor := &event.CommandMonitor{
-		Started: func(ctx context.Context, evt *event.CommandStartedEvent) {
-			var commandMap map[string]interface{}
-			if err := bson.Unmarshal(evt.Command, &commandMap); err != nil {
-				log.Printf("Error unmarshaling command BSON: %v", err)
-				return
-			}
+	// monitor := &event.CommandMonitor{
+	// 	Started: func(ctx context.Context, evt *event.CommandStartedEvent) {
+	// 		var commandMap map[string]interface{}
+	// 		if err := bson.Unmarshal(evt.Command, &commandMap); err != nil {
+	// 			log.Printf("Error unmarshaling command BSON: %v", err)
+	// 			return
+	// 		}
 
-			// Convert the decoded map to a JSON string for logging
-			commandJSON, err := json.MarshalIndent(commandMap, "", "  ")
-			if err != nil {
-				log.Printf("Error converting command map to JSON: %v", err)
-				return
-			}
+	// 		// Convert the decoded map to a JSON string for logging
+	// 		commandJSON, err := json.MarshalIndent(commandMap, "", "  ")
+	// 		if err != nil {
+	// 			log.Printf("Error converting command map to JSON: %v", err)
+	// 			return
+	// 		}
 
-			fmt.Println(string(commandJSON))
+	// 		fmt.Println(string(commandJSON))
 
-		},
-	}
+	// 	},
+	// }
 	// lopts := &options.LoggerOptions{}
 	clientOptions := options.Client().
 		ApplyURI(config.URI).
 		SetMaxPoolSize(config.MaxPoolSize).
 		SetMinPoolSize(config.MinPoolSize).
 		SetRetryWrites(config.RetryWrites).
-		SetRetryReads(config.RetryReads).SetMonitor(monitor)
+		SetRetryReads(config.RetryReads) //.SetMonitor(monitor)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -232,6 +230,29 @@ func (tx *mongDb[T]) FindOne(findOption ...FindOption) Result[T] {
 		Err: nil,
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{}
+	if len(findOption) > 0 {
+		for _, option := range findOption {
+			for _, f := range option.Filter {
+				filter[f.Key] = f.Value
+			}
+		}
+	}
+
+	var model T
+	id := fmt.Sprintf("%s", filter["id"])
+
+	err := tx.db.FindOne(ctx, bson.M{
+		"_id": id,
+	}).Decode(&model)
+	if err != nil {
+		result.Err = err
+	}
+
+	result.Data = model
 	return result
 }
 
