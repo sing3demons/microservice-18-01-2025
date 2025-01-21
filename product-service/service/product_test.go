@@ -16,10 +16,10 @@ func TestProductServiceFindOne(t *testing.T) {
 		productRepositoryMock := repository.NewProductRepositoryMock()
 
 		expectedProduct := model.Product{
-			ID:    "1",
-			Name:  "Product 1",
-			Price: 100,
-			Stock: 10,
+			ID:       "1",
+			Name:     "Product1",
+			Price:    100,
+			Quantity: 10,
 		}
 
 		productRepositoryMock.On("FindOne", mock.Anything).Return(expectedProduct, nil)
@@ -40,7 +40,7 @@ func TestProductServiceFindOne(t *testing.T) {
 
 		filter := "1"
 		result := productService.FindOne(filter)
-		assert.Equal(t, http.StatusInternalServerError, result.Status)
+		assert.Equal(t, http.StatusNotFound, result.Status)
 		assert.Equal(t, false, result.Success)
 	})
 }
@@ -50,10 +50,10 @@ func TestProductServiceFind(t *testing.T) {
 		productRepositoryMock := repository.NewProductRepositoryMock()
 
 		expectedProducts := []model.Product{{
-			ID:    "1",
-			Name:  "Product 1",
-			Price: 100,
-			Stock: 10,
+			ID:       "1",
+			Name:     "Product 1",
+			Price:    100,
+			Quantity: 10,
 		}}
 
 		productRepositoryMock.On("Find", mock.Anything).Return(expectedProducts, nil)
@@ -85,10 +85,10 @@ func TestProductServiceCreate(t *testing.T) {
 		productRepositoryMock := repository.NewProductRepositoryMock()
 
 		product := model.Product{
-			ID:    "1",
-			Name:  "Product 1",
-			Price: 100,
-			Stock: 10,
+			ID:       "1",
+			Name:     "Product 1",
+			Price:    100,
+			Quantity: 10,
 		}
 
 		productRepositoryMock.On("Create", product).Return(nil)

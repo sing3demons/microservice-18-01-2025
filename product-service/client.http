@@ -1,7 +1,7 @@
-@uri=http://localhost:8080
+@uri=http://localhost:8081
 
 
-GET {{uri}}/products?fields=name HTTP/1.1
+GET {{uri}}/products?search=product1 HTTP/1.1
 ###
 POST {{uri}}/products HTTP/1.1
 content-type: application/json
@@ -9,5 +9,5 @@ content-type: application/json
 {
   "name": "product1",
   "price": 100,
-  "stock": 10
+  "quantity": 10
 }
