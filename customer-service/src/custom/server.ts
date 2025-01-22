@@ -12,6 +12,8 @@ import useragent from 'useragent'
 import { v4, v7 } from 'uuid'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
 import cookieParser from 'cookie-parser'
+import { Socket } from 'net'
+import http from 'http'
 
 export class AppRouter {
   protected readonly _routes: InternalRoute[] = []
@@ -214,7 +216,42 @@ export default class AppServer extends AppRouter {
     if (!this.express) {
       throw new Error('App is not initialized')
     }
-    if (this.express) this.express.listen(port, callback)
+    if (this.express) {
+
+      const server = http.createServer(this.express).listen(port,callback)
+      // const server = this.express.listen(port, callback)
+
+      const connections = new Set<Socket>()
+      server.on('connection', (connection) => {
+        connections.add(connection)
+        connection.on('close', () => {
+          connections.delete(connection)
+        })
+      })
+  
+      const signals = ['SIGINT', 'SIGTERM', 'SIGQUIT'] as const
+      signals.forEach((signal) => {
+        process.on(signal, () => {
+          console.log(`Received ${signal}. Closing server.`)
+          server.close(() => {
+            console.log('Server closed.')
+            callback?.()
+            process.exit(0)
+          })
+  
+          // If after 10 seconds the server hasn't finished, force shutdown
+          setTimeout(() => {
+            console.log('Could not close server in time. Forcing shutdown.')
+            connections.forEach((connection) => {
+              connection.destroy()
+            })
+            callback?.()
+            process.exit(1)
+          }, 10000)
+        })
+      })
+      return server
+    }
   }
 }
 

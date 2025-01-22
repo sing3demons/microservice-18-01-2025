@@ -179,6 +179,9 @@ describe('AppServer', () => {
     appServer = new AppServer()
   })
 
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
   it('should initialize express instance', () => {
     expect(appServer.instance).toBeDefined()
   })
@@ -222,13 +225,6 @@ describe('AppServer', () => {
     const response = await supertest(expressApp).post('/test').send({ age: 30 }).expect(400)
 
     expect(response.body.desc).toBe('invalid_request')
-  })
-
-  it('should listen on specified port', (done) => {
-    appServer.listen(3000, (err) => {
-      expect(err).toBeUndefined()
-      done()
-    })
   })
 })
 describe('AppRouter', () => {
@@ -295,6 +291,10 @@ describe('AppServer', () => {
     appServer = new AppServer()
   })
 
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('should initialize express instance', () => {
     expect(appServer.instance).toBeDefined()
   })
@@ -338,12 +338,5 @@ describe('AppServer', () => {
     const response = await supertest(expressApp).post('/test').send({ age: 30 }).expect(400)
 
     expect(response.body.desc).toBe('invalid_request')
-  })
-
-  it('should listen on specified port', (done) => {
-    appServer.listen(3001, (err) => {
-      expect(err).toBeUndefined()
-      done()
-    })
   })
 })

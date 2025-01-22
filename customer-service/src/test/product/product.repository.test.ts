@@ -1,21 +1,20 @@
-import { mock } from 'jest-mock-extended'
 import ProductRepository from '../../product/product.repository'
 import ProductModel, { IProduct } from '../../product/product.schema'
 
-jest.mock('../../product/product.schema', () => ({
-  find: jest.fn(),
-  findById: jest.fn(),
-  create: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
-  findByIdAndDelete: jest.fn(),
-}))
+// jest.mock('../../product/product.schema', () => ({
+//   find: jest.fn(),
+//   findById: jest.fn(),
+//   create: jest.fn(),
+//   findByIdAndUpdate: jest.fn(),
+//   findByIdAndDelete: jest.fn(),
+// }))
 
 describe('Create Product Use Case', () => {
   const productRepository = new ProductRepository()
-  const productModel = jest.mocked(ProductModel)
+  const ProductModelMock = jest.mocked(ProductModel)
 
   beforeEach(() => {
-    jest.resetAllMocks() // Clear previous mocks
+    jest.resetAllMocks()  
   })
   afterEach(() => {
     jest.clearAllMocks()
@@ -38,7 +37,7 @@ describe('Create Product Use Case', () => {
       _v: 0,
     })
 
-    productModel.create = createMock
+    ProductModelMock.create = createMock
     // Act
     const actual = await productRepository.create(body)
 
@@ -52,16 +51,12 @@ describe('Create Product Use Case', () => {
       quantity: 10,
     }
     expect(actual).toEqual(expected)
+    expect(actual.id).toBeDefined()
+    expect(actual.name).toBe(expected.name)
+    expect(actual.price).toBe(expected.price)
+    expect(actual.detail).toBe(expected.detail)
+    expect(actual.quantity).toBe(expected.quantity)
     expect(ProductModel.create).toHaveBeenCalled()
-  })
-})
-
-describe('Get Product Use Case', () => {
-  const productRepository = new ProductRepository()
-  const productModel = jest.mocked(ProductModel)
-
-  beforeEach(() => {
-    jest.resetAllMocks() // Clear previous mocks
   })
 
   it('should get products.', async () => {
@@ -76,7 +71,7 @@ describe('Get Product Use Case', () => {
       },
     ]
 
-    productModel.find = jest.fn().mockReturnValue({
+    ProductModelMock.find = jest.fn().mockReturnValue({
       lean: jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue([
           {
@@ -97,15 +92,6 @@ describe('Get Product Use Case', () => {
     expect(actual).toEqual(products)
     expect(ProductModel.find).toHaveBeenCalled()
     expect(ProductModel.find().lean).toHaveBeenCalled()
-  })
-})
-
-describe('Get Product By Id Use Case', () => {
-  const productRepository = new ProductRepository()
-  const productModel = jest.mocked(ProductModel)
-
-  beforeEach(() => {
-    jest.resetAllMocks() // Clear previous mocks
   })
 
   it('should get product by id.', async () => {
@@ -128,7 +114,7 @@ describe('Get Product By Id Use Case', () => {
       }),
     })
 
-    productModel.findById = jest.fn().mockReturnValue({
+    ProductModelMock.findById = jest.fn().mockReturnValue({
       lean,
     })
 
@@ -144,7 +130,7 @@ describe('Get Product By Id Use Case', () => {
   it('should return null if product not found.', async () => {
     // Arrange
 
-    productModel.findById = jest.fn().mockReturnValue({
+    ProductModelMock.findById = jest.fn().mockReturnValue({
       lean: jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       }),
@@ -156,15 +142,6 @@ describe('Get Product By Id Use Case', () => {
     // Assert
     expect(actual).toBeNull()
     expect(ProductModel.findById).toHaveBeenCalled()
-  })
-})
-
-describe('Update Product Use Case', () => {
-  const productRepository = new ProductRepository()
-  const productModel = jest.mocked(ProductModel)
-
-  beforeEach(() => {
-    jest.resetAllMocks() // Clear previous mocks
   })
 
   it('should update product.', async () => {
@@ -187,7 +164,7 @@ describe('Update Product Use Case', () => {
       }),
     })
 
-    productModel.findByIdAndUpdate = jest.fn().mockReturnValue({
+    ProductModelMock.findByIdAndUpdate = jest.fn().mockReturnValue({
       lean,
     })
 
@@ -209,7 +186,7 @@ describe('Update Product Use Case', () => {
     const findByIdAndUpdateMock = jest.fn().mockReturnValue({
       lean,
     })
-    productModel.findByIdAndUpdate = findByIdAndUpdateMock
+    ProductModelMock.findByIdAndUpdate = findByIdAndUpdateMock
 
     // Act
     const actual = await productRepository.update('507f191e810c19729de860ea', {
@@ -222,15 +199,6 @@ describe('Update Product Use Case', () => {
     // Assert
     expect(actual).toBeNull()
     expect(ProductModel.findByIdAndUpdate).toHaveBeenCalled()
-  })
-})
-
-describe('Delete Product Use Case', () => {
-  const productRepository = new ProductRepository()
-  const productModel = jest.mocked(ProductModel)
-
-  beforeEach(() => {
-    jest.resetAllMocks() // Clear previous mocks
   })
 
   it('should delete product.', async () => {
@@ -256,7 +224,7 @@ describe('Delete Product Use Case', () => {
     const findByIdAndDeleteMock = jest.fn().mockReturnValue({
       lean,
     })
-    productModel.findByIdAndDelete = findByIdAndDeleteMock
+    ProductModelMock.findByIdAndDelete = findByIdAndDeleteMock
 
     // Act
     const actual = await productRepository.delete('507f191e810c19729de860ea')
@@ -273,7 +241,7 @@ describe('Delete Product Use Case', () => {
       exec: jest.fn().mockResolvedValue(null),
     })
     const findByIdAndDeleteMock = jest.fn().mockReturnValue({ lean })
-    productModel.findByIdAndDelete = findByIdAndDeleteMock
+    ProductModelMock.findByIdAndDelete = findByIdAndDeleteMock
 
     // Act
     const actual = await productRepository.delete('507f191e810c19729de860ea')

@@ -14,13 +14,6 @@ export interface IProduct {
   updatedAt?: Date
 }
 
-class ProductFactory {
-  constructor(private readonly product: IProduct) {}
-  public build() {
-    return this.product
-  }
-}
-
 const ProductSchema = new Schema<IProduct>(
   {
     _id: { type: String, required: true },
@@ -53,6 +46,6 @@ const productQuerySchema = Type.Object({
   offset: Type.Optional(Type.Number()),
 })
 
-export { productSchema, productQuerySchema, ProductFactory }
+export { productSchema, productQuerySchema }
 
 export default ProductModel

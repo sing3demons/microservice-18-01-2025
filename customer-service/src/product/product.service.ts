@@ -19,15 +19,11 @@ export default class ProductService implements IProductService {
       headers: {
         'Content-Type': 'application/json',
       },
-      query: {
-        search: body.name,
-      },
+      query: { search: body.name },
     })
 
-    console.log(httpResult.Body.data)
-
-    if (httpResult.Status === 200 && httpResult.Body.data.length > 0) {
-      const data = httpResult.Body.data[0] as IProduct
+    if (httpResult.Status === 200 && httpResult.Body.length > 0) {
+      const data = httpResult.Body[0] as IProduct
       return {
         id: data.id,
         href: `/products/${data.id}`,

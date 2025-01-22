@@ -1,4 +1,4 @@
-import ProductModel, { IProduct, ProductFactory } from './product.schema'
+import ProductModel, { IProduct } from './product.schema'
 import { v7 } from 'uuid'
 
 export interface IProductRepository {

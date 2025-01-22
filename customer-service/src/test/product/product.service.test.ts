@@ -5,37 +5,37 @@ import ProductService from '../../product/product.service'
 import { IHttpService } from '../../custom/http-service'
 
 const dataExternal = {
-  body: [
-    {
-      id: '24cdfc4b-22fc-471c-8629-fc577d2b3fa4',
-      _id: '24cdfc4b-22fc-471c-8629-fc577d2b3fa4',
-      name: 'product1',
-      price: 100,
-      stock: 10,
-      href: '/products/24cdfc4b-22fc-471c-8629-fc577d2b3fa4',
-    },
-    {
-      id: '678d03aa6c8d5ccdb15c3b12',
-      _id: '678d03aa6c8d5ccdb15c3b12',
-      name: 'product1',
-      detail: 'detail1',
-      price: 100,
-      quantity: 1,
-      __v: 0,
-      href: '/products/678d03aa6c8d5ccdb15c3b12',
-    },
-    {
-      id: '678d03e55178972323aed8ef',
-      _id: '678d03e55178972323aed8ef',
-      name: 'product1',
-      detail: 'detail1',
-      price: 100,
-      quantity: 1,
-      __v: 0,
-      href: '/products/678d03e55178972323aed8ef',
-    },
+  Body: [
+    // {
+    //   id: '24cdfc4b-22fc-471c-8629-fc577d2b3fa4',
+    //   _id: '24cdfc4b-22fc-471c-8629-fc577d2b3fa4',
+    //   name: 'product1',
+    //   price: 100,
+    //   stock: 10,
+    //   href: '/products/24cdfc4b-22fc-471c-8629-fc577d2b3fa4',
+    // },
+    // {
+    //   id: '678d03aa6c8d5ccdb15c3b12',
+    //   _id: '678d03aa6c8d5ccdb15c3b12',
+    //   name: 'product1',
+    //   detail: 'detail1',
+    //   price: 100,
+    //   quantity: 1,
+    //   __v: 0,
+    //   href: '/products/678d03aa6c8d5ccdb15c3b12',
+    // },
+    // {
+    //   id: '678d03e55178972323aed8ef',
+    //   _id: '678d03e55178972323aed8ef',
+    //   name: 'product1',
+    //   detail: 'detail1',
+    //   price: 100,
+    //   quantity: 1,
+    //   __v: 0,
+    //   href: '/products/678d03e55178972323aed8ef',
+    // },
   ],
-  header: {
+  Header: {
     'x-powered-by': 'Express',
     'content-type': 'application/json; charset=utf-8',
     'content-length': '551',
@@ -44,22 +44,21 @@ const dataExternal = {
     connection: 'keep-alive',
     'keep-alive': 'timeout=5',
   },
-  status: 200,
-  statusText: 'OK',
+  Status: 200,
+  StatusText: 'OK',
 }
 
 describe('product service', () => {
   let httpServiceMock: IHttpService = mock<IHttpService>()
 
-  beforeAll(() => {
-    httpServiceMock.get = jest.fn().mockResolvedValue(dataExternal)
-  })
+  beforeAll(() => {})
   afterEach(() => {
     jest.clearAllMocks()
   })
   describe('Create Product Use Case', () => {
     it('should be create product.', async () => {
       // Arrange
+      httpServiceMock.get = jest.fn().mockReturnValue(dataExternal)
       const productRepositoryMock = mock<ProductRepository>()
       const body: IProduct = {
         id: '1',
@@ -76,9 +75,44 @@ describe('product service', () => {
       expect(httpServiceMock.get).toHaveBeenCalledTimes(1)
 
       // Assert
-      expect(actual).toEqual(body)
+      // expect(actual).toEqual(body)
+      expect(actual.id).toEqual(body.id)
+      expect(actual.name).toEqual(body.name)
+      expect(actual.price).toEqual(body.price)
+      expect(actual.detail).toEqual(body.detail)
+      expect(actual.quantity).toEqual(body.quantity)
+      expect(productRepositoryMock.create).toHaveBeenCalled()
+      expect(productRepositoryMock.create).toHaveBeenCalled()
+    })
 
-      // check call httpServiceMock
+    it('should return product from external service when it exists.', async () => {
+      // Arrange
+      const externalProduct: IProduct = {
+        id: '1',
+        name: 'product',
+        price: 100,
+        detail: 'detail',
+        quantity: 10,
+      }
+      const externalData = { ...dataExternal, Body: [externalProduct] }
+      httpServiceMock.get = jest.fn().mockReturnValue(externalData)
+      const productRepositoryMock = mock<ProductRepository>()
+      const productService = new ProductService(productRepositoryMock, httpServiceMock)
+
+      // Act
+      const actual = await productService.createProduct(externalProduct)
+
+      // Assert
+      expect(httpServiceMock.get).toHaveBeenCalledTimes(1)
+      expect(actual.id).toEqual(externalProduct.id)
+      expect(actual.name).toEqual(externalProduct.name)
+      expect(actual.price).toEqual(externalProduct.price)
+      expect(actual.detail).toEqual(externalProduct.detail)
+      expect(actual.quantity).toEqual(externalProduct.quantity)
+      expect(actual.href).toEqual(`/products/${externalProduct.id}`)
+
+      expect(productRepositoryMock.create).not.toHaveBeenCalled()
+
     })
   })
 

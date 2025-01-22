@@ -3,12 +3,15 @@ import { IProduct } from '../../product/product.schema'
 import ProductService from '../../product/product.service'
 import appServer from '../../server'
 
-jest.mock('../../product/product.service')
+// jest.mock('../../product/product.service') // v1
 
 describe('GET /products', () => {
-  const productService = jest.mocked(ProductService)
+  // const productService = jest.mocked(ProductService) // v1
+  const ProductServiceMock = jest.mocked(ProductService)
 
-  beforeEach(() => {})
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
 
   afterEach(() => {
     jest.clearAllMocks() // Clear all mocks between tests
@@ -19,22 +22,25 @@ describe('GET /products', () => {
     const mockProducts: IProduct[] = [
       { id: '1', href: '/products/1', name: 'Product A', price: 100, detail: 'detail', quantity: 10 },
     ]
-    productService.prototype.getProducts.mockResolvedValue(mockProducts)
+    // productService.prototype.getProducts.mockResolvedValue(mockProducts) // v1
+    ProductServiceMock.prototype.getProducts = jest.fn().mockResolvedValue(mockProducts)
 
     const response = await request(appServer.register()).get('/products').set('Accept', 'application/json')
-
-    expect(productService.prototype.getProducts).toHaveBeenCalledTimes(1)
+    // expect(productService.prototype.getProducts).toHaveBeenCalledTimes(1) // v1
+    expect(ProductService.prototype.getProducts).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
     expect(response.body).toEqual(mockProducts)
   })
 
   test('should return 404 when no products are found', async () => {
     // Mock the return value of productService.getProducts
-    productService.prototype.getProducts.mockResolvedValue([])
+    // productService.prototype.getProducts.mockResolvedValue([]) // v1
 
+    ProductServiceMock.prototype.getProducts = jest.fn().mockResolvedValue([])
     const response = await request(appServer.register()).get('/products').set('Accept', 'application/json')
 
-    expect(productService.prototype.getProducts).toHaveBeenCalledTimes(1)
+    // expect(productService.prototype.getProducts).toHaveBeenCalledTimes(1) // v1
+    expect(ProductService.prototype.getProducts).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(404)
     expect(response.body).toEqual([])
   })
@@ -53,14 +59,15 @@ describe('POST /products', () => {
 
   test('should create a new product', async () => {
     const mockProduct: IProduct = { id: '1', name: 'Product A', price: 100, detail: 'detail', quantity: 10 }
-    productService.prototype.createProduct.mockResolvedValue(mockProduct)
+    // productService.prototype.createProduct.mockResolvedValue(mockProduct)
+    productService.prototype.createProduct = jest.fn().mockResolvedValue(mockProduct)
 
     const response = await request(appServer.register())
       .post('/products')
       .send(mockProduct)
       .set('Accept', 'application/json')
 
-    expect(productService.prototype.createProduct).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.createProduct).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
     expect(response.body).toEqual(mockProduct)
   })
@@ -79,21 +86,21 @@ describe('GET /products/:id', () => {
 
   test('should return a product by id', async () => {
     const mockProduct: IProduct = { id: '1', name: 'Product A', price: 100, detail: 'detail', quantity: 10 }
-    productService.prototype.getProductById.mockResolvedValue(mockProduct)
+    productService.prototype.getProductById = jest.fn().mockResolvedValue(mockProduct)
 
     const response = await request(appServer.register()).get('/products/1').set('Accept', 'application/json')
 
-    expect(productService.prototype.getProductById).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.getProductById).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
     expect(response.body).toEqual(mockProduct)
   })
 
   test('should return 404 when no product is found', async () => {
-    productService.prototype.getProductById.mockResolvedValue(null)
+    productService.prototype.getProductById = jest.fn().mockResolvedValue(null)
 
     const response = await request(appServer.register()).get('/products/1').set('Accept', 'application/json')
 
-    expect(productService.prototype.getProductById).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.getProductById).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(404)
     expect(response.body).toEqual({})
   })
@@ -112,20 +119,20 @@ describe('PUT /products/:id', () => {
 
   test('should update a product by id', async () => {
     const mockProduct: IProduct = { id: '1', name: 'Product A', price: 100, detail: 'detail', quantity: 10 }
-    productService.prototype.updateProduct.mockResolvedValue(mockProduct)
+    productService.prototype.updateProduct = jest.fn().mockResolvedValue(mockProduct)
 
     const response = await request(appServer.register())
       .put('/products/1')
       .send(mockProduct)
       .set('Accept', 'application/json')
 
-    expect(productService.prototype.updateProduct).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.updateProduct).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
     expect(response.body).toEqual(mockProduct)
   })
 
   test('should return 404 when no product is found', async () => {
-    productService.prototype.updateProduct.mockResolvedValue(null)
+    productService.prototype.updateProduct = jest.fn().mockResolvedValue(null)
 
     const response = await request(appServer.register())
       .put('/products/1')
@@ -137,7 +144,7 @@ describe('PUT /products/:id', () => {
       })
       .set('Accept', 'application/json')
 
-    expect(productService.prototype.updateProduct).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.updateProduct).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(404)
     expect(response.body).toEqual({})
   })
@@ -156,21 +163,21 @@ describe('DELETE /products/:id', () => {
 
   test('should delete a product by id', async () => {
     const mockProduct: IProduct = { id: '1', name: 'Product A', price: 100, detail: 'detail', quantity: 10 }
-    productService.prototype.deleteProduct.mockResolvedValue(mockProduct)
+    productService.prototype.deleteProduct = jest.fn().mockResolvedValue(mockProduct)
 
     const response = await request(appServer.register()).delete('/products/1').set('Accept', 'application/json')
 
-    expect(productService.prototype.deleteProduct).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.deleteProduct).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(200)
     expect(response.body).toEqual(mockProduct)
   })
 
   test('should return 404 when no product is found', async () => {
-    productService.prototype.deleteProduct.mockResolvedValue(null)
+    productService.prototype.deleteProduct = jest.fn().mockResolvedValue(null)
 
     const response = await request(appServer.register()).delete('/products/1').set('Accept', 'application/json')
 
-    expect(productService.prototype.deleteProduct).toHaveBeenCalledTimes(1)
+    expect(ProductService.prototype.deleteProduct).toHaveBeenCalledTimes(1)
     expect(response.status).toBe(404)
     expect(response.body).toEqual({})
   })
