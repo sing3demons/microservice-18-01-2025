@@ -1,14 +1,6 @@
 import ProductRepository from '../../product/product.repository'
 import ProductModel, { IProduct } from '../../product/product.schema'
 
-// jest.mock('../../product/product.schema', () => ({
-//   find: jest.fn(),
-//   findById: jest.fn(),
-//   create: jest.fn(),
-//   findByIdAndUpdate: jest.fn(),
-//   findByIdAndDelete: jest.fn(),
-// }))
-
 describe('Create Product Use Case', () => {
   const productRepository = new ProductRepository()
   const ProductModelMock = jest.mocked(ProductModel)
@@ -57,6 +49,7 @@ describe('Create Product Use Case', () => {
     expect(actual.detail).toBe(expected.detail)
     expect(actual.quantity).toBe(expected.quantity)
     expect(ProductModel.create).toHaveBeenCalled()
+    expect(ProductModel.create).toHaveBeenCalledWith(body)
   })
 
   it('should get products.', async () => {

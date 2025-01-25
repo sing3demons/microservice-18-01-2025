@@ -7,6 +7,7 @@ describe('When testing getUser with jest mock', () => {
 
   const UserModel = jest.mocked(User)
   const consoleMock = jest.mocked(console)
+  jest.spyOn(console, 'log').mockImplementation()
 
   it('should call findUser with id 1', async () => {
     UserModel.findOne = jest.fn().mockResolvedValueOnce({

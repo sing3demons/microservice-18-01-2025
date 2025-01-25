@@ -72,17 +72,23 @@ describe('product service', () => {
 
       // Act
       const actual = await productService.createProduct(body)
-      expect(httpServiceMock.get).toHaveBeenCalledTimes(1)
-
       // Assert
-      // expect(actual).toEqual(body)
+      expect(httpServiceMock.get).toHaveBeenCalledTimes(1)
+      expect(httpServiceMock.get).toHaveBeenCalledWith({
+        url: 'http://localhost:8081/products',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        query: { search: body.name },
+      })
+
       expect(actual.id).toEqual(body.id)
       expect(actual.name).toEqual(body.name)
       expect(actual.price).toEqual(body.price)
       expect(actual.detail).toEqual(body.detail)
       expect(actual.quantity).toEqual(body.quantity)
       expect(productRepositoryMock.create).toHaveBeenCalled()
-      expect(productRepositoryMock.create).toHaveBeenCalled()
+      expect(productRepositoryMock.create).toHaveBeenCalledWith(body)
     })
 
     it('should return product from external service when it exists.', async () => {
@@ -135,7 +141,6 @@ describe('product service', () => {
       // Act
 
       const actual = await productService.getProducts()
-      // console.log(actual)
 
       expect(actual).toEqual(products)
       expect(actual[0].href).toEqual('/products/1')

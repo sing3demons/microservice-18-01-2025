@@ -6,6 +6,10 @@ describe('When testing getUser with jest spy', () => {
     jest.restoreAllMocks()
   })
 
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation()
+  })
+
   const findUserMock = jest.mocked(userFunctions)
 
   it('should call findUser with id 1', async () => {
