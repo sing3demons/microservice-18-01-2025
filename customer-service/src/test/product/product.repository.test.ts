@@ -14,7 +14,7 @@ describe('Create Product Use Case', () => {
   const ProductModelMock = jest.mocked(ProductModel)
 
   beforeEach(() => {
-    jest.resetAllMocks()  
+    jest.resetAllMocks()
   })
   afterEach(() => {
     jest.clearAllMocks()
@@ -249,5 +249,57 @@ describe('Create Product Use Case', () => {
     // Assert
     expect(actual).toBeNull()
     expect(ProductModel.findByIdAndDelete).toHaveBeenCalled()
+  })
+})
+
+describe('product repository', () => {
+  const productRepository = new ProductRepository()
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  // test create method
+  describe('create', () => {
+    it('should create a product.', async () => {
+      // Arrange
+      const body: IProduct = {
+        name: 'product',
+        price: 100,
+        detail: 'detail',
+        quantity: 10,
+      }
+
+      const createMock = jest.fn().mockResolvedValue({
+        _id: '507f191e810c19729de860ea',
+        name: 'product',
+        price: 100,
+        detail: 'detail',
+        quantity: 10,
+        _v: 0,
+      })
+      jest.spyOn(ProductModel, 'create').mockImplementation(createMock)
+
+      // Act
+      const actual = await productRepository.create(body)
+
+      // Assert
+      const expected = {
+        id: '507f191e810c19729de860ea',
+        name: 'product',
+        price: 100,
+        detail: 'detail',
+        quantity: 10,
+      }
+      expect(actual).toEqual(expected)
+      expect(actual.id).toBeDefined()
+      expect(actual.name).toBe(expected.name)
+      expect(actual.price).toBe(expected.price)
+      expect(actual.detail).toBe(expected.detail)
+      expect(actual.quantity).toBe(expected.quantity)
+      expect(ProductModel.create).toHaveBeenCalled()
+      expect(ProductModel.create).toHaveBeenCalledWith(body)
+      expect(createMock).toHaveBeenCalledWith(body)
+    })
   })
 })
