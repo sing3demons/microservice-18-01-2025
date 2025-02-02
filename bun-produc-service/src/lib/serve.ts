@@ -1,4 +1,4 @@
-import express, { type Request, type Response, type NextFunction, type Express, type Application } from 'express'
+import express, { type Request, type Response, type NextFunction } from 'express'
 import {
   type CtxSchema,
   HttpMethod,
@@ -11,11 +11,9 @@ import {
   type CustomRouteDefinition,
 } from './context'
 import type { TObject } from '@sinclair/typebox'
-import useragent from 'useragent'
 import { v4, v7 } from 'uuid'
 import { TypeCompiler } from '@sinclair/typebox/compiler'
 import cookieParser from 'cookie-parser'
-import { Socket } from 'net'
 import http from 'http'
 
 export const HandlerSchema = <T extends CtxSchema>(handler: CustomHandler<T>, hook?: MiddlewareRoute<T>) => ({
@@ -62,10 +60,12 @@ export class AppRouter implements IAppRouter {
   protected _routes: InternalRoute[] = []
 
   private add(method: HttpMethod, path: string, handler: InlineHandler<any, any>, hook?: MiddlewareRoute<any>) {
-    if (!path.startsWith('/')) {
-      path = `/${path}`
-    }
-    this._routes.push({ method, path, handler, hook })
+    this._routes.push({
+      method,
+      path: path.replace(/\/+$/, '').replace(/^([^/])/, '/$1'),
+      handler,
+      hook,
+    })
     return this
   }
 
@@ -179,15 +179,12 @@ const framework = {
 } as const
 
 export default class AppServer extends AppRouter {
-  public instance: Application | null = null
-  private readonly express: Express
+  private readonly instance = express()
   constructor() {
     super()
 
-    this.express = express()
-    this.express.use((req: Request, _res: Response, next: NextFunction) => {
-      const agent = useragent.parse(req.headers['user-agent'] || '')
-
+    this.instance.use((req: Request, _res: Response, next: NextFunction) => {
+      // const agent = useragent.parse(req.headers['user-agent'] || '')
       if (!req.headers['x-session']) {
         req.headers['x-session'] = v4()
       }
@@ -199,10 +196,9 @@ export default class AppServer extends AppRouter {
       next()
     })
 
-    this.express.use(express.json())
-    this.express.use(express.urlencoded({ extended: true }))
-    this.express.use(cookieParser())
-    this.instance = this.express
+    this.instance.use(express.json())
+    this.instance.use(express.urlencoded({ extended: true }))
+    this.instance.use(cookieParser())
   }
 
   public router(router: AppRouter) {
@@ -210,52 +206,44 @@ export default class AppServer extends AppRouter {
   }
 
   private validatorFactory(req: CtxSchema, schema: CtxSchema) {
-    try {
-      const errors = []
-      if (schema.body) {
-        const C = TypeCompiler.Compile(schema.body as TObject)
-        const isValid = C.Check(req.body)
-        if (!isValid) {
-          errors.push(...[...C.Errors(req.body)].map((e) => ({ type: 'body', path: e.path, message: e.message })))
-        }
+    const errors = []
+    if (schema.body) {
+      const C = TypeCompiler.Compile(schema.body as TObject)
+      const isValid = C.Check(req.body)
+      if (!isValid) {
+        errors.push(...[...C.Errors(req.body)].map((e) => ({ type: 'body', path: e.path, message: e.message })))
       }
+    }
 
-      if (schema.params) {
-        const C = TypeCompiler.Compile(schema.params as TObject)
-        const isValid = C.Check(req.params)
-        if (!isValid) {
-          errors.push(...[...C.Errors(req.params)].map((e) => ({ type: 'params', path: e.path, message: e.message })))
-        }
+    if (schema.params) {
+      const C = TypeCompiler.Compile(schema.params as TObject)
+      const isValid = C.Check(req.params)
+      if (!isValid) {
+        errors.push(...[...C.Errors(req.params)].map((e) => ({ type: 'params', path: e.path, message: e.message })))
       }
+    }
 
-      if (schema.query) {
-        const C = TypeCompiler.Compile(schema.query as TObject)
-        const isValid = C.Check(req.query)
-        if (!isValid) {
-          errors.push(...[...C.Errors(req.query)].map((e) => ({ type: 'query', path: e.path, message: e.message })))
-        }
+    if (schema.query) {
+      const C = TypeCompiler.Compile(schema.query as TObject)
+      const isValid = C.Check(req.query)
+      if (!isValid) {
+        errors.push(...[...C.Errors(req.query)].map((e) => ({ type: 'query', path: e.path, message: e.message })))
       }
+    }
 
-      if (schema.headers) {
-        const C = TypeCompiler.Compile(schema.headers as TObject)
-        const isValid = C.Check(req.headers)
-        if (!isValid) {
-          errors.push(...[...C.Errors(req.headers)].map((e) => ({ type: 'headers', path: e.path, message: e.message })))
-        }
+    if (schema.headers) {
+      const C = TypeCompiler.Compile(schema.headers as TObject)
+      const isValid = C.Check(req.headers)
+      if (!isValid) {
+        errors.push(...[...C.Errors(req.headers)].map((e) => ({ type: 'headers', path: e.path, message: e.message })))
       }
+    }
 
-      const isError = errors.length > 0 ? true : false
-      return {
-        err: isError,
-        desc: isError ? 'invalid_request' : 'success',
-        data: errors,
-      }
-    } catch (error) {
-      return {
-        err: true,
-        desc: 'unknown_error',
-        data: [error],
-      }
+    const isError = errors.length > 0 ? true : false
+    return {
+      err: isError,
+      desc: isError ? 'invalid_request' : 'success',
+      data: errors,
     }
   }
 
@@ -265,7 +253,11 @@ export default class AppServer extends AppRouter {
       headers: req.headers,
       params: req.params,
       query: req.query,
-      response: (code: number, data: unknown) => {
+      response: (code: number, data: unknown, headers?: Record<string, unknown>) => {
+        if (headers && Object.keys(headers).length > 0) {
+          res.set(headers)
+        }
+
         res.status(code).send(data)
       },
       set: {
@@ -280,85 +272,78 @@ export default class AppServer extends AppRouter {
 
   public register() {
     this._routes.forEach(({ method, path, handler, hook }) => {
-      if (this.express) {
-        this.express.route(path)[method](async (req: Request, res: Response, next: NextFunction) => {
-          const ctx = this.createContext(req, res)
-          const schemas = hook?.schema || {}
-          const schema = this.validatorFactory(ctx, schemas)
-          if (schema.err) {
-            res.status(400).json({
-              desc: schema.desc,
-              data: schema.data,
-            })
-            return next()
-          }
+      this.instance.route(path)[method](async (req: Request, res: Response, next: NextFunction) => {
+        const ctx = this.createContext(req, res)
+        const schemas = hook?.schema || {}
+        const schema = this.validatorFactory(ctx, schemas)
+        if (schema.err) {
+          res.status(400).json({
+            desc: schema.desc,
+            data: schema.data,
+          })
+          return next()
+        }
 
-          const result = await handler(ctx)
+        const result = await handler(ctx)
 
-          if (ctx.set.status) {
-            res.status(ctx.set.status)
-          }
+        if (result && ctx.set.headers) {
+          res.set(ctx.set.headers)
+        }
 
-          if (ctx.set.headers) {
-            res.set(ctx.set.headers)
-          }
+        if (result && ctx.set.cookie) {
+          res.cookie(ctx.set.cookie.name, ctx.set.cookie.value, ctx.set.cookie.options)
+        }
 
-          if (ctx.set.cookie) {
-            res.cookie(ctx.set.cookie.name, ctx.set.cookie.value, ctx.set.cookie.options)
-          }
+        if (result && ctx.set.status) {
+          res.status(ctx.set.status)
+        }
 
-          if (result) {
-            res.json(result)
-          }
-        })
-      }
+        if (result) {
+          res.json(result)
+        }
+      })
     })
 
     this._routes.length = 0
 
-    return this.express as Express
+    // url not found
+    this.instance.use((req: Request, res: Response) => {
+      res.status(404).json({
+        desc: 'not_found',
+        data: {
+          url: req.url,
+          method: req.method,
+        },
+      })
+    })
+
+    return this.instance
   }
 
-  public listen(port: number, callback: (err?: Error) => void) {
-    if (!this.express) {
-      throw new Error('App is not initialized')
+  public listen(port: number, callback?: (err?: Error) => void) {
+    if (this._routes.length !== 0) {
+      this.register()
     }
-    if (this.express) {
-      if (this._routes.length !== 0) {
-        this.register()
-      }
-      const server = http.createServer(this.express).listen(port, callback)
 
-      const connections = new Set<Socket>()
-      server.on('connection', (connection) => {
-        connections.add(connection)
-        connection.on('close', () => {
-          connections.delete(connection)
+    const server = http.createServer(this.instance).listen(port, callback)
+
+    const signals = ['SIGINT', 'SIGTERM', 'SIGQUIT'] as const
+    signals.forEach((signal) => {
+      process.on(signal, () => {
+        console.log(`Received ${signal}. Closing server.`)
+        server.close(() => {
+          console.log('Server closed.')
+          if (callback) callback()
+          process.exit(0)
         })
-      })
 
-      const signals = ['SIGINT', 'SIGTERM', 'SIGQUIT'] as const
-      signals.forEach((signal) => {
-        process.on(signal, () => {
-          console.log(`Received ${signal}. Closing server.`)
-          server.close(() => {
-            console.log('Server closed.')
-            callback?.()
-            process.exit(0)
-          })
-
-          setTimeout(() => {
-            console.log('Could not close server in time. Forcing shutdown.')
-            connections.forEach((connection) => {
-              connection.destroy()
-            })
-            callback?.()
-            process.exit(1)
-          }, 10000)
-        })
+        setTimeout(() => {
+          console.log('Could not close server in time. Forcing shutdown.')
+          process.exit(1)
+        }, 10000)
       })
-      return server
-    }
+    })
+    return server
   }
 }
 

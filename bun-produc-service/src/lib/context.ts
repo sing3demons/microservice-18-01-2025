@@ -242,6 +242,7 @@ export const statusMap = {
   Accepted: 202,
   'Non-Authoritative Information': 203,
   'No Content': 204,
+  NoContent: 204,
   'Reset Content': 205,
   'Partial Content': 206,
   'Multi-Status': 207,
@@ -254,14 +255,18 @@ export const statusMap = {
   'Temporary Redirect': 307,
   'Permanent Redirect': 308,
   'Bad Request': 400,
+  BadRequest: 400,
   Unauthorized: 401,
   'Payment Required': 402,
   Forbidden: 403,
   'Not Found': 404,
+  NotFound: 404,
   'Method Not Allowed': 405,
+  MethodNotAllowed: 405,
   'Not Acceptable': 406,
   'Proxy Authentication Required': 407,
   'Request Timeout': 408,
+  RequestTimeout: 408,
   Conflict: 409,
   Gone: 410,
   'Length Required': 411,
@@ -274,18 +279,23 @@ export const statusMap = {
   "I'm a teapot": 418,
   'Misdirected Request': 421,
   'Unprocessable Content': 422,
+  UnprocessableEntity: 422,
   Locked: 423,
   'Failed Dependency': 424,
   'Too Early': 425,
   'Upgrade Required': 426,
   'Precondition Required': 428,
   'Too Many Requests': 429,
+  TooManyRequests: 429,
   'Request Header Fields Too Large': 431,
   'Unavailable For Legal Reasons': 451,
   'Internal Server Error': 500,
+  InternalServerError: 500,
   'Not Implemented': 501,
   'Bad Gateway': 502,
+  BadGateway: 502,
   'Service Unavailable': 503,
+  ServiceUnavailable: 503,
   'Gateway Timeout': 504,
   'HTTP Version Not Supported': 505,
   'Variant Also Negotiates': 506,
@@ -356,12 +366,13 @@ export type Context<Route extends CtxSchema = {}, Path extends string | undefine
     headers: HTTPHeaders
     status?: number | keyof StatusMap
     redirect?: string
-    cookie?: Record<string, Cookie>
+    cookie?: Record<string, any>
   }
 
   response(
     status: number | keyof StatusMap,
-    body: undefined extends Route['response'] ? unknown : Route['response'][keyof Route['response']]
+    body: undefined extends Route['response'] ? unknown : Route['response'][keyof Route['response']],
+    headers?: HTTPHeaders
   ): void
 
   path: string
@@ -399,12 +410,13 @@ export type Ctx<Route extends CtxSchema = {}> = Prettify<{
     headers: HTTPHeaders
     status?: number | keyof StatusMap
     redirect?: string
-    cookie?: Record<string, Cookie>
+    cookie?: Record<string, any>
   }
 
   response(
     status: number | keyof StatusMap,
-    body: undefined extends Route['response'] ? unknown : Route['response'][keyof Route['response']]
+    body: undefined extends Route['response'] ? unknown : Route['response'][keyof Route['response']],
+    headers?: HTTPHeaders
   ): void
 
   path: string
